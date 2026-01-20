@@ -7,7 +7,9 @@ import sys
 import time
 
 # ============================================================
+#
 # Utilitaires d'affichage (nettoyage + mise en page adaptée)
+#
 # ============================================================
 
 def clear_screen() -> Tuple[int, int]:
@@ -45,7 +47,9 @@ def ask_int(prompt: str) -> int:
             print("Valeur non valide. Merci d'entrer un entier (ex: 12, -3, 0).")
 
 # ============================================================
+#
 # Banque de listes triées
+#
 # ============================================================
 
 PRESET_BANK = {
@@ -57,7 +61,9 @@ PRESET_BANK = {
 }
 
 # ============================================================
+#
 # Dessin de l'état du tableau (adapté à la largeur du terminal)
+#
 # ============================================================
 
 def _slice_window(n: int, left: int, right: int, cols: int, min_cells: int = 8) -> Tuple[int, int]:
@@ -136,7 +142,9 @@ def draw_array(arr: List[int], left: int, right: int, mid: int, title: str, expl
     print()
 
 # ============================================================
+#
 # Étapes d'algorithmes (générateurs)
+#
 # ============================================================
 
 @dataclass
@@ -224,7 +232,9 @@ def steps_bisect_right(arr: List[int], x: int) -> Iterator[Step]:
     yield Step(g, d-1, g, "final", f"Position d'insertion (droite) = {g}.", done=True, payload=g)
 
 # ============================================================
+#
 # Enveloppes d'exécution (affichage pas à pas)
+#
 # ============================================================
 
 def run_steps(arr: List[int], x: int, generator: Callable[[List[int], int], Iterator[Step]], title: str) -> Optional[int]:
@@ -274,7 +284,9 @@ def run_range_first_last(arr: List[int], x: int) -> None:
     pause()
 
 # ============================================================
+#
 # Menus (liste + algo) — avec nettoyage à chaque écran
+#
 # ============================================================
 
 def choose_list(bank: dict) -> List[int]:
@@ -287,6 +299,7 @@ def choose_list(bank: dict) -> List[int]:
         print("  [A] Ajouter une nouvelle liste triée")
         print("  [Q] Quitter")
         print()
+        # Demander le choix de l'utilisateur
         choice = input("Ton choix [1..{n}, A, Q] : ".format(n=len(keys))).strip().lower()
 
         if choice == "q":
@@ -295,14 +308,18 @@ def choose_list(bank: dict) -> List[int]:
             clear_screen()
             header("AJOUT D'UNE LISTE")
             print("Entrer des entiers séparés par des espaces (ex: 1 2 2 5 9).")
+            # Lire la ligne
             raw = input(">> ").strip()
             try:
+                # Convertir les entiers
                 arr = [int(tok) for tok in raw.split()]
             except ValueError:
                 print("\nMauvais format. Réessaie (ex: 0 1 1 2 3).")
                 pause()
                 continue
+            # Trier
             arr.sort()
+            # Nommer et stocker
             name = input("Nom pour cette liste : ").strip() or f"perso_{len(bank)+1}"
             bank[name] = arr
             print("\nListe ajoutée et triée :", arr)
@@ -347,6 +364,10 @@ def choose_algo() -> int:
 
 # ============================================================
 # Boucle principale
+#
+# L'utilisateur choisit une liste, puis un algo, puis on exécute
+# l'algo pas à pas avec affichage.
+#
 # ============================================================
 
 def main() -> None:

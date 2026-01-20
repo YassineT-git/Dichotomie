@@ -20,27 +20,14 @@
   citecolor=black
 }
 
-% --------- LISTINGS (robuste UTF-8 + fallback ASCII) ----------
-\lstset{
-  inputencoding=utf8,
-  language=Python,
-  backgroundcolor=\color{gray!5},
-  frame=single,
-  rulecolor=\color{gray!50},
-  basicstyle=\ttfamily\small,
-  keywordstyle=\color{blue!80!black},
-  commentstyle=\color{green!50!black},
-  stringstyle=\color{orange!80!black},
-  showstringspaces=false,
-  tabsize=4,
-  breaklines=true,
-  % Mappages accents si on en laisse dans du pseudo-code:
-  literate=
-   {é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {ë}{{\"e}}1
-   {à}{{\`a}}1 {ù}{{\`u}}1 {û}{{\^u}}1 {ü}{{\"u}}1
-   {â}{{\^a}}1 {î}{{\^i}}1 {ï}{{\"i}}1 {ô}{{\^o}}1
-   {ç}{{\c{c}}}1 {É}{{\'E}}1 {È}{{\`E}}1 {À}{{\`A}}1
-   {Œ}{{\OE}}1 {œ}{{\oe}}1 {’}{{'}}1 {“}{{"}}1 {”}{{"}}1
+\lstset{inputencoding=utf8, language=Python, backgroundcolor=\color{gray!5}, frame=single,
+  rulecolor=\color{gray!50}, basicstyle=\ttfamily\small, keywordstyle=\color{blue!80!black}, commentstyle=\color{green!50!black},
+  stringstyle=\color{orange!80!black}, showstringspaces=false, tabsize=4, breaklines=true,
+  literate = {é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {ë}{{\"e}}1
+             {à}{{\`a}}1 {ù}{{\`u}}1 {û}{{\^u}}1 {ü}{{\"u}}1
+             {â}{{\^a}}1 {î}{{\^i}}1 {ï}{{\"i}}1 {ô}{{\^o}}1
+             {ç}{{\c{c}}}1 {É}{{\'E}}1 {È}{{\`E}}1 {À}{{\`A}}1
+             {Œ}{{\OE}}1 {œ}{{\oe}}1 {’}{{'}}1 {“}{{"}}1 {”}{{"}}1
 }
 
 \title{\textbf{La recherche dichotomique}}
@@ -112,8 +99,6 @@ e_{n+1}=\frac{f''(\xi_n)}{2\,f'(x_n)}\,e_n^2
 \]
 d'où la borne quadratique dès lors que $f''$ est bornée et $f'$ est \emph{uniformément} non nul autour de $\alpha$.
 
-
-
 \section{Recherche dichotomique : théorie et preuves}
 \subsection{Principe et invariant}
 Pour un tableau trié $T$, on maintient $gauche$ et $droite$ de sorte que :
@@ -135,24 +120,17 @@ Nombre d’itérations $\le \lceil \log_2(n)\rceil + 1$;  temps $\mathcal{O}(\lo
 \begin{figure}[htbp]
   \centering
   \begin{tikzpicture}[>=Latex, scale=1]
-    % Axe des indices
     \draw[->] (0,0) -- (10.5,0);
     \foreach \x/\lab in {0/0,2/2,4/4,6/6,8/8,10/10}{
       \draw (\x,-0.1)--(\x,0.1);
       \node[below=4pt] at (\x,-0.1) {\lab};
     }
-
-    % Intervalle initial
     \draw[decorate,decoration={brace,amplitude=6pt}] (0,0.6) -- (10,0.6);
     \node at (5,1.2) {zone initiale $[0,9]$};
-
-    % Étape 1
     \draw[dashed] (5, 0) -- (5,-1.0);
     \node[above] at (5,0) {$m=4$};
     \draw[decorate,decoration={brace,amplitude=6pt,mirror}] (5,-1.2) -- (10,-1.2);
     \node at (7.5,-1.8) {après $T[m]<x$};
-
-    % Étape 2
     \draw[dashed] (7.5, 0) -- (7.5,-2.2);
     \node[above] at (7.5,0) {$m=7$};
     \draw[decorate,decoration={brace,amplitude=6pt,mirror}] (5,-2.4) -- (7,-2.4);
@@ -173,13 +151,11 @@ Nombre d’itérations $\le \lceil \log_2(n)\rceil + 1$;  temps $\mathcal{O}(\lo
     }
   ]
 
-  % Positions verticales
   \def\yval{0}
   \def\ybraceA{2.2}
   \def\ybraceB{-0.8}
   \def\ybraceC{1.2}
 
-  % Tableau : valeurs + indices dans les cases
   \foreach \val/\i/\col in {
     3/0/white, 5/1/white, 9/2/white, 9/3/white, 
     10/4/white, 12/5/gray!20, 12/6/white, 14/7/white,
@@ -188,17 +164,14 @@ Nombre d’itérations $\le \lceil \log_2(n)\rceil + 1$;  temps $\mathcal{O}(\lo
     \node[case, fill=\col] (a\i) at (\i,\yval) {\val\raisebox{-0.5em}{\scriptsize\textcolor{gray}{$\i$}}};
   }
 
-  % Accolade : zone initiale EN HAUT, bien au-dessus
   \draw[decorate,decoration={brace,amplitude=6pt}] 
     ([yshift=\ybraceA cm]a0.north west) -- ([yshift=\ybraceA cm]a9.north east)
     node[midway, yshift=10pt, draw=none, font=\normalsize] {Zone initiale $[0,9]$};
 
-  % Accolade : après m=4 (droite) en bas
   \draw[decorate,decoration={brace,amplitude=6pt,mirror}] 
     (a5.south west) -- (a9.south east)
     node[midway, yshift=-14pt, draw=none] {Après $m=4$ (droite)};
 
-  % Accolade : ciblage final après m=7, en haut mais plus bas que la 1re
   \draw[decorate,decoration={brace,amplitude=6pt}] 
     ([yshift=\ybraceC cm]a5.north west) -- ([yshift=\ybraceC cm]a6.north east)
     node[midway, yshift=10pt, draw=none] {Après $m=7$ (ciblage final)};
@@ -206,7 +179,6 @@ Nombre d’itérations $\le \lceil \log_2(n)\rceil + 1$;  temps $\mathcal{O}(\lo
   \end{tikzpicture}
   \caption{Tableau trié annoté : valeurs (dans les cases), indices (en bas à droite), et étapes de réduction.}
 \end{figure}
-
 
 \cleardoublepage
 
@@ -241,7 +213,6 @@ Nombre d’itérations $\le \lceil \log_2(n)\rceil + 1$;  temps $\mathcal{O}(\lo
   \draw[->] (eq) -- node[right]{Non} (lt);
   \draw[->] (lt) -- node[right]{Oui} (goRight);
   \draw[->] (lt.west) -- node[above]{Non} (goLeft.east);
-  % Ligne "Non" sans utiliser .east pour eviter le warning:
   \draw[->] (cond1) to[out=0,in=90] node[midway, above]{Non} (fail.north);
   \end{tikzpicture}
   \caption{Organigramme de la recherche dichotomique (flots lisibles, sans warning TikZ).}
@@ -297,7 +268,6 @@ ALGORITHME PointInsertion(T trie, x)
 FIN
 \end{lstlisting}
 
-% Styles flowchart
 \tikzset{
   block/.style={draw, rounded corners, align=center, minimum width=5cm, minimum height=8mm},
   decision/.style={draw, diamond, aspect=2, align=center, inner sep=1.5pt}
@@ -451,9 +421,7 @@ A.-L. Cauchy,
 (Comparaisons numériques, précision flottante et bonnes pratiques.)
 
 \end{thebibliography}
-
 \paragraph{Crédits des schémas.}
 Schémas réalisés par moi mème avec TikZ (\texttt{arrows.meta}, \texttt{positioning}, \texttt{shapes.geometric}, \texttt{decorations.pathreplacing}). 
-
 
 \end{document}

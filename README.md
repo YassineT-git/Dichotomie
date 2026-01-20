@@ -25,7 +25,7 @@ Pour exécuter le code de ce projet, vous avez besoin de :
 
 1.  **Cloner le dépôt**
     ```bash
-    git clone [https://github.com/YassineT-git/Dichotomie.git](https://github.com/YassineT-git/Dichotomie.git)
+    git clone https://github.com/YassineT-git/Dichotomie.git
     cd Dichotomie
     ```
 
@@ -36,11 +36,11 @@ Pour exécuter le code de ce projet, vous avez besoin de :
     ```
     *(Remplacez `demo_numerique.py` par le vrai nom du fichier Python présent dans le dossier)*
 
-## 👤 Auteur
+## Auteur
 
 **YassineT**
 * GitHub : [@YassineT-git](https://github.com/YassineT-git)
-* Linkedin : [@Yassine . T](www.linkedin.com/in/yassine-t)
+* Linkedin : [Yassine . T](www.linkedin.com/in/yassine-t)
 
 ---
 *Ce projet a été réalisé dans un cadre académique et personnel.*

@@ -1,0 +1,459 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{geometry}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{listingsutf8} % UTF-8 pour listings
+\usepackage[unicode]{hyperref}
+\geometry{margin=2cm}
+\usetikzlibrary{arrows.meta,positioning,calc,decorations.pathreplacing,shapes.geometric}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=black,
+  citecolor=black
+}
+
+% --------- LISTINGS (robuste UTF-8 + fallback ASCII) ----------
+\lstset{
+  inputencoding=utf8,
+  language=Python,
+  backgroundcolor=\color{gray!5},
+  frame=single,
+  rulecolor=\color{gray!50},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!80!black},
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{orange!80!black},
+  showstringspaces=false,
+  tabsize=4,
+  breaklines=true,
+  % Mappages accents si on en laisse dans du pseudo-code:
+  literate=
+   {é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {ë}{{\"e}}1
+   {à}{{\`a}}1 {ù}{{\`u}}1 {û}{{\^u}}1 {ü}{{\"u}}1
+   {â}{{\^a}}1 {î}{{\^i}}1 {ï}{{\"i}}1 {ô}{{\^o}}1
+   {ç}{{\c{c}}}1 {É}{{\'E}}1 {È}{{\`E}}1 {À}{{\`A}}1
+   {Œ}{{\OE}}1 {œ}{{\oe}}1 {’}{{'}}1 {“}{{"}}1 {”}{{"}}1
+}
+
+\title{\textbf{La recherche dichotomique}}
+\author{Yassine . T}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction : pourquoi ces techniques ?}
+Trouver rapidement une information ou résoudre une équation est un besoin central en informatique et en mathématiques appliquées. Deux idées fondatrices reviennent sans cesse :
+\begin{itemize}
+  \item \textbf{Diviser pour régner} : réduire l'espace de recherche par dichotomie, ce qui mène à la recherche dichotomique en tableaux triés et à la bisection pour les zéros de fonctions.
+  \item \textbf{Linéariser localement} : approcher une fonction par sa tangente pour obtenir une mise à jour efficace -- c'est la méthode de Newton (Newton--Raphson).
+\end{itemize}
+Nous relions ici ces idées : d'abord le contexte historique, puis la théorie mathématique (avec Newton en détail), et enfin une mise en œuvre algorithmique illustrée en Python.
+
+\section{Origines historiques}
+\subsection{Racines de la dichotomie}
+L'idée de couper un intervalle en deux remonte à l'Antiquité. En analyse, la \href{https://lamatuenautodidacte.wordpress.com/2018/07/02/methodes-de-bissection-et-de-newton/}{bisection} s'appuie sur le théorème des valeurs intermédiaires (Bolzano, Cauchy) : si $f$ est continue et change de signe sur $[a,b]$, un zéro appartient à cet intervalle ; on répète alors la division par deux.
+
+\subsection{Des tables numériques à la \emph{binary search}}
+Avec l'essor des tables et des index (mathématiques, astronomiques, puis informatiques), la recherche efficace dans des données triées s'est imposée : la recherche dichotomique réduit logarithmiquement le nombre de comparaisons.
+
+\subsection{Newton, Raphson et l'itération tangentielle}
+La \textbf{méthode de Newton} (XVII\textsuperscript{e}) émerge de l'idée d'utiliser la tangente pour approcher un zéro de $f$. Raphson formalise l'itération ; l'analyse moderne en donne la théorie de convergence. C'est l'archétype du fait de remplacer un problème non linéaire par des linéarisations locales successives.
+
+\section{Partie mathématique : la méthode de Newton}
+
+\subsection{Principe (rappel)}
+On cherche une racine $\alpha$ de $f:I\to\mathbb{R}$ avec $f(\alpha)=0$. À partir d'une approximation $x_n$ proche de $\alpha$, on linéarise $f$ en $x_n$ :
+\[
+f(x)\approx f(x_n)+f'(x_n)(x-x_n).
+\]
+Le zéro de cette tangente donne l'itération de Newton :
+\[
+x_{n+1}=x_n-\frac{f(x_n)}{f'(x_n)}.
+\]
+On notera l'opérateur de Newton $N_f(x):=x-\frac{f(x)}{f'(x)}$. C'est un schéma de \emph{point fixe} : si $f'(\alpha)\neq 0$, alors $N_f(\alpha)=\alpha$. De plus $N_f'(\alpha)=0$ (voir ci-dessous), ce qui annonce la convergence quadratique.
+
+\subsection{Théorème de convergence quadratique locale}
+\textbf{Hypothèses.} Soit $f\in C^2(I)$ et $\alpha\in I$ telle que $f(\alpha)=0$ et $f'(\alpha)\neq 0$ (\emph{zéro simple}). Alors il existe un voisinage $U$ de $\alpha$ tel que $f'(x)\neq 0$ pour tout $x\in U$.
+
+\medskip
+\textbf{Constantes locales.} On se fixe $U=B(\alpha,r)$ (une boule ouverte) sur laquelle
+\[
+m_1:=\inf_{x\in U}|f'(x)|>0,
+\qquad
+M_2:=\sup_{x\in U}|f''(x)|<\infty.
+\]
+(On peut toujours choisir $r>0$ assez petit pour garantir ces bornes.)
+
+\medskip
+\textbf{Énoncé.} Il existe $\rho\in(0,r]$ tel que si $x_0\in B(\alpha,\rho)$, la suite $(x_n)$ de Newton est bien définie, reste dans $B(\alpha,\rho)$ et vérifie, pour tout $n\ge 0$,
+\[
+|x_{n+1}-\alpha|\;\le\;C\,|x_n-\alpha|^2,
+\qquad
+C:=\frac{M_2}{2\,m_1}.
+\]
+En particulier, $x_n\to\alpha$ avec \textbf{convergence quadratique} (l'erreur est approximativement quadratée à chaque itération).
+
+\medskip
+\textbf{Idée-clé.} Posons $e_n:=x_n-\alpha$. Une identité exacte montre
+\[
+e_{n+1}=\frac{f''(\xi_n)}{2\,f'(x_n)}\,e_n^2
+\quad\text{pour un certain }\xi_n\in(\alpha,x_n),
+\]
+d'où la borne quadratique dès lors que $f''$ est bornée et $f'$ est \emph{uniformément} non nul autour de $\alpha$.
+
+
+
+\section{Recherche dichotomique : théorie et preuves}
+\subsection{Principe et invariant}
+Pour un tableau trié $T$, on maintient $gauche$ et $droite$ de sorte que :
+\[
+\text{si } x \text{ est présent, alors } x \in T[gauche..\,droite].
+\]
+À chaque étape, on prend $m=\lfloor(gauche+droite)/2\rfloor$ et on supprime la moitié impossible.
+
+\subsection{Correction (esquisse)}
+\begin{itemize}
+  \item \textbf{Initialisation} : $[0, n-1]$ contient toutes les positions.
+  \item \textbf{Conservation} : si $T[m]\neq x$, le tri impose un seul côté possible ; mise à jour de la borne correspondante.
+  \item \textbf{Terminaison} : longueur d'intervalle décroissante ; quand $gauche>droite$, plus de position candidate.
+\end{itemize}
+
+\subsection{Complexité}
+Nombre d’itérations $\le \lceil \log_2(n)\rceil + 1$;  temps $\mathcal{O}(\log n)$; espace $\mathcal{O}(1)$ en itératif.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[>=Latex, scale=1]
+    % Axe des indices
+    \draw[->] (0,0) -- (10.5,0);
+    \foreach \x/\lab in {0/0,2/2,4/4,6/6,8/8,10/10}{
+      \draw (\x,-0.1)--(\x,0.1);
+      \node[below=4pt] at (\x,-0.1) {\lab};
+    }
+
+    % Intervalle initial
+    \draw[decorate,decoration={brace,amplitude=6pt}] (0,0.6) -- (10,0.6);
+    \node at (5,1.2) {zone initiale $[0,9]$};
+
+    % Étape 1
+    \draw[dashed] (5, 0) -- (5,-1.0);
+    \node[above] at (5,0) {$m=4$};
+    \draw[decorate,decoration={brace,amplitude=6pt,mirror}] (5,-1.2) -- (10,-1.2);
+    \node at (7.5,-1.8) {après $T[m]<x$};
+
+    % Étape 2
+    \draw[dashed] (7.5, 0) -- (7.5,-2.2);
+    \node[above] at (7.5,0) {$m=7$};
+    \draw[decorate,decoration={brace,amplitude=6pt,mirror}] (5,-2.4) -- (7,-2.4);
+    \node at (6,-3.0) {après $T[m]>x$};
+  \end{tikzpicture}
+  \caption{Réduction d'intervalle (vue par indices) pour la recherche dichotomique.}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[
+    font=\small,
+    case/.style={
+      draw, 
+      minimum width=0.8cm, 
+      minimum height=0.8cm,
+      anchor=south west
+    }
+  ]
+
+  % Positions verticales
+  \def\yval{0}
+  \def\ybraceA{2.2}
+  \def\ybraceB{-0.8}
+  \def\ybraceC{1.2}
+
+  % Tableau : valeurs + indices dans les cases
+  \foreach \val/\i/\col in {
+    3/0/white, 5/1/white, 9/2/white, 9/3/white, 
+    10/4/white, 12/5/gray!20, 12/6/white, 14/7/white,
+    17/8/white, 18/9/white} 
+  {
+    \node[case, fill=\col] (a\i) at (\i,\yval) {\val\raisebox{-0.5em}{\scriptsize\textcolor{gray}{$\i$}}};
+  }
+
+  % Accolade : zone initiale EN HAUT, bien au-dessus
+  \draw[decorate,decoration={brace,amplitude=6pt}] 
+    ([yshift=\ybraceA cm]a0.north west) -- ([yshift=\ybraceA cm]a9.north east)
+    node[midway, yshift=10pt, draw=none, font=\normalsize] {Zone initiale $[0,9]$};
+
+  % Accolade : après m=4 (droite) en bas
+  \draw[decorate,decoration={brace,amplitude=6pt,mirror}] 
+    (a5.south west) -- (a9.south east)
+    node[midway, yshift=-14pt, draw=none] {Après $m=4$ (droite)};
+
+  % Accolade : ciblage final après m=7, en haut mais plus bas que la 1re
+  \draw[decorate,decoration={brace,amplitude=6pt}] 
+    ([yshift=\ybraceC cm]a5.north west) -- ([yshift=\ybraceC cm]a6.north east)
+    node[midway, yshift=10pt, draw=none] {Après $m=7$ (ciblage final)};
+
+  \end{tikzpicture}
+  \caption{Tableau trié annoté : valeurs (dans les cases), indices (en bas à droite), et étapes de réduction.}
+\end{figure}
+
+
+\cleardoublepage
+
+\section{Algorithmique : pseudocodes et variantes}
+
+\subsection{Schéma explicatif}
+
+\tikzset{
+  block/.style={draw, rounded corners, align=center, minimum width=5cm, minimum height=8mm},
+  decision/.style={draw, diamond, aspect=2, align=center, inner sep=1.5pt}
+}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[node distance=8mm, >=Latex]
+  \node[block] (start) {Entrees : tableau trie T, valeur x};
+  \node[block, below=of start] (init) {g <- 0,\ d <- n-1};
+  \node[decision, below=of init] (cond1) {g <= d ?};
+  \node[block, below=of cond1] (mid) {m <- floor((g+d)/2)};
+  \node[decision, below=of mid] (eq) {T[m] = x ?};
+  \node[block, right=24mm of eq] (ret) {Retourner m};
+  \node[decision, below=of eq] (lt) {T[m] < x ?};
+  \node[block, below=of lt] (goRight) {g <- m+1};
+  \node[block, left=24mm of lt] (goLeft) {d <- m-1};
+  \node[block, below=of goRight] (fail) {Retourner -1};
+
+  \draw[->] (start) -- (init);
+  \draw[->] (init) -- (cond1);
+  \draw[->] (cond1) -- node[right]{Oui} (mid);
+  \draw[->] (mid) -- (eq);
+  \draw[->] (eq) -- node[above]{Oui} (ret);
+  \draw[->] (eq) -- node[right]{Non} (lt);
+  \draw[->] (lt) -- node[right]{Oui} (goRight);
+  \draw[->] (lt.west) -- node[above]{Non} (goLeft.east);
+  % Ligne "Non" sans utiliser .east pour eviter le warning:
+  \draw[->] (cond1) to[out=0,in=90] node[midway, above]{Non} (fail.north);
+  \end{tikzpicture}
+  \caption{Organigramme de la recherche dichotomique (flots lisibles, sans warning TikZ).}
+\end{figure}
+
+\subsection{Version standard (itérative)}
+\begin{lstlisting}[language={},basicstyle=\ttfamily\small]
+ALGORITHME RechercheDichotomique(T trie, x)
+  gauche <- 0
+  droite <- n(T) - 1
+  TANT QUE gauche <= droite FAIRE
+    m <- floor((gauche + droite) / 2)
+    SI T[m] = x ALORS
+      RETOURNER m
+    SINON SI T[m] < x ALORS
+      gauche <- m + 1
+    SINON
+      droite <- m - 1
+    FINSI
+  FIN TANT QUE
+  RETOURNER -1
+FIN
+\end{lstlisting}
+
+
+\subsection{Première et dernière occurrence}
+\begin{lstlisting}[language={},basicstyle=\ttfamily\small]
+ALGORITHME PremiereOccurrence(T trie, x)
+  gauche <- 0 ; droite <- n(T) - 1 ; rep <- -1
+  TANT QUE gauche <= droite FAIRE
+    m <- floor((gauche + droite) / 2)
+    SI T[m] >= x ALORS
+      SI T[m] = x ALORS rep <- m FINSI
+      droite <- m - 1
+    SINON
+      gauche <- m + 1
+    FINSI
+  FIN TANT QUE
+  RETOURNER rep
+FIN
+\end{lstlisting}
+
+\subsection{Point d'insertion (type bisect\_left)}
+\begin{lstlisting}[language={},basicstyle=\ttfamily\small]
+ALGORITHME PointInsertion(T trie, x)
+  g <- 0 ; d <- n(T)
+  TANT QUE g < d FAIRE
+    m <- floor((g + d) / 2)
+    SI T[m] < x ALORS g <- m + 1
+    SINON d <- m
+  FIN TANT QUE
+  RETOURNER g
+FIN
+\end{lstlisting}
+
+% Styles flowchart
+\tikzset{
+  block/.style={draw, rounded corners, align=center, minimum width=5cm, minimum height=8mm},
+  decision/.style={draw, diamond, aspect=2, align=center, inner sep=1.5pt}
+}
+
+\section{Implémentations Python (robustes et commentées)}
+\subsection*{Recherche dichotomique standard}
+\begin{lstlisting}
+def binary_search(tab, x):
+    # Retourne l'indice de x dans tab (trie) ou -1 si absent.
+    g, d = 0, len(tab) - 1
+    while g <= d:
+        m = (g + d) // 2  # Milieu
+        if tab[m] == x:
+            return m
+        elif tab[m] < x:
+            g = m + 1
+        else:
+            d = m - 1
+    return -1
+\end{lstlisting}
+\newpage
+\subsection*{Première occurrence, dernière occurrence et point d'insertion}
+\begin{lstlisting}
+def first_occurrence(tab, x):
+    g, d, rep = 0, len(tab) - 1, -1
+    while g <= d:
+        m = (g + d) // 2
+        if tab[m] >= x:
+            if tab[m] == x:
+                rep = m
+            d = m - 1
+        else:
+            g = m + 1
+    return rep
+
+def last_occurrence(tab, x):
+    g, d, rep = 0, len(tab) - 1, -1
+    while g <= d:
+        m = (g + d) // 2
+        if tab[m] <= x:
+            if tab[m] == x:
+                rep = m
+            g = m + 1
+        else:
+            d = m - 1
+    return rep
+
+def insertion_point(tab, x):
+    g, d = 0, len(tab)
+    while g < d:
+        m = (g + d) // 2
+        if tab[m] < x:
+            g = m + 1
+        else:
+            d = m
+    return g  # position pour inserer x
+\end{lstlisting}
+
+\subsection*{Méthode de la bisection (zéro de fonction)}
+\begin{lstlisting}
+def bisection(f, a, b, eps=1e-12, itmax=100):
+    # Trouve un zero sur [a,b] si f(a)*f(b) < 0, par bisection.
+    fa, fb = f(a), f(b)
+    if fa * fb > 0:
+        raise ValueError("f(a) et f(b) doivent etre de signes opposes.")
+    for _ in range(itmax):
+        m = 0.5 * (a + b)
+        fm = f(m)
+        if abs(fm) <= eps or 0.5 * (b - a) <= eps:
+            return m
+        if fa * fm < 0:
+            b, fb = m, fm
+        else:
+            a, fa = m, fm
+    return 0.5 * (a + b)
+\end{lstlisting}
+
+\subsection*{Méthode de Newton }
+\begin{lstlisting}
+def newton(f, fp, x0, eps=1e-12, itmax=100):
+    # Methode de Newton avec arret sur petit residu ou petit pas.
+    x = x0
+    for _ in range(itmax):
+        fx = f(x)
+        fpx = fp(x)
+        if fpx == 0:
+            raise ZeroDivisionError("Derivee nulle: Newton impossible.")
+        x_next = x - fx / fpx
+        if abs(x_next - x) <= eps and abs(fx) <= eps:
+            return x_next
+        x = x_next
+    return x
+\end{lstlisting}
+
+\section{Conclusion générale}
+Nous avons relié trois aspects fondamentaux de l’algorithmique et du calcul numérique :
+\begin{enumerate}
+  \item \textbf{Dichotomie} — L’idée de réduire l’espace de recherche par deux à chaque étape fonde à la fois la recherche dichotomique dans les tableaux triés et la bisection pour l’approximation de zéros. Elle garantit la \emph{correction} (grâce au tri ou au TVI) et une \emph{complexité} en temps $\mathcal{O}(\log n)$ en contexte discret.
+  \item \textbf{Linéarisation} — La méthode de Newton (Newton–Raphson) illustre la puissance de l’approximation tangentielle : sous hypothèses standard ($f\in C^2$, zéro simple, bon point initial), la \emph{convergence est quadratique}, offrant des gains spectaculaires par rapport à la bisection (linéaire) — au prix d’une moindre robustesse si l’initialisation est mauvaise ou si $f'(\alpha)=0$.
+  \item \textbf{Algorithmique } — Invariants, preuves de correction et analyses de complexité structurent les implémentations. En pratique, on combine souvent une \emph{phase sûre} (quelques itérations de bisection) pour cadrer la solution, puis \emph{Newton} pour accélérer la convergence.
+\end{enumerate}
+Ces techniques constituent des briques fondamentales, autant pour l’algorithmique (recherche efficace, structures triées) que pour le calcul scientifique (résolution d’équations non linéaires, optimisation numérique). Les schémas fournis (réduction des bornes, organigramme, itérations tangentielle) doivent servir de \emph{repères visuels} pour justifier, expliquer et déboguer les implémentations.
+
+\newpage
+
+\section*{Sources et références}
+\begin{thebibliography}{99}
+
+\bibitem{CLRS}
+T. H. Cormen, C. E. Leiserson, R. L. Rivest, C. Stein,
+\textit{Introduction to Algorithms}, 3\textsuperscript{e} éd., MIT Press, 2009.
+(Algorithmes de recherche, preuves par invariants, complexités.)
+
+\bibitem{Knuth}
+D. E. Knuth,
+\textit{The Art of Computer Programming, Vol. 3: Sorting and Searching}, 2\textsuperscript{e} éd., Addison-Wesley, 1998.
+(Analyse classique de la binary search et des structures triées.)
+
+\bibitem{Bentley}
+J. Bentley,
+\textit{Programming Pearls}, 2\textsuperscript{e} éd., Addison-Wesley, 2000.
+(Erreurs classiques de la binary search, méthodologie et tests.)
+
+\bibitem{BurdenFaires}
+R. L. Burden, J. D. Faires,
+\textit{Numerical Analysis}, 10\textsuperscript{e} éd., Cengage, 2015.
+(Méthodes de bisection et de Newton, preuves et vitesses de convergence.)
+
+\bibitem{Atkinson}
+K. E. Atkinson,
+\textit{An Introduction to Numerical Analysis}, 2\textsuperscript{e} éd., Wiley, 1989.
+(Convergence locale de Newton, zéros multiples, choix de $x_0$.)
+
+\bibitem{StoerBulirsch}
+J. Stoer, R. Bulirsch,
+\textit{Introduction to Numerical Analysis}, 3\textsuperscript{e} éd., Springer, 2002.
+(Encadrements, stabilité, raffinements de Newton et variantes.)
+
+\bibitem{Cauchy}
+A.-L. Cauchy,
+\textit{Cours d’analyse de l’École Royale Polytechnique}, 1821.
+(Fondements de l’analyse ; contexte historique du TVI et des méthodes d’approximation.)
+
+\bibitem{PythonBisect}
+\textit{Python Standard Library — \texttt{bisect} module}, \url{https://docs.python.org/3/library/bisect.html}
+(Point d’insertion, \texttt{bisect\_left}/\texttt{bisect\_right}, bonnes pratiques.)
+
+\bibitem{PythonMath}
+\textit{Python \texttt{math} module}, \url{https://docs.python.org/3/library/math.html}
+(Comparaisons numériques, précision flottante et bonnes pratiques.)
+
+\end{thebibliography}
+
+\paragraph{Crédits des schémas.}
+Schémas réalisés par moi mème avec TikZ (\texttt{arrows.meta}, \texttt{positioning}, \texttt{shapes.geometric}, \texttt{decorations.pathreplacing}). 
+
+
+\end{document}
